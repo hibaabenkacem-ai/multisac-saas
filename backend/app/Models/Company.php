@@ -19,4 +19,9 @@ class Company extends Model
     {
         return $this->hasMany(User::class);
     }
+
+    public function orders(): HasMany
+    {
+        return $this->hasMany(Order::class);
+    }
 }
