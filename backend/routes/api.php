@@ -1,11 +1,21 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\CompanyController;
+use App\Http\Controllers\InvitationController;
+
 
 Route::post('/login', [AuthController::class, 'login']);
+
+
+/*
+|--------------------------------------------------------------------------
+| Company Users
+|--------------------------------------------------------------------------
+*/
 
 Route::middleware(['auth:sanctum', 'company.context'])->group(function () {
 
@@ -16,8 +26,14 @@ Route::middleware(['auth:sanctum', 'company.context'])->group(function () {
     Route::get('/orders', [OrderController::class, 'index']);
 
     Route::post('/orders', [OrderController::class, 'store']);
-
 });
+
+
+/*
+|--------------------------------------------------------------------------
+| Editor / Platform Management
+|--------------------------------------------------------------------------
+*/
 
 Route::middleware(['auth:sanctum', 'editor'])->group(function () {
 
@@ -29,6 +45,32 @@ Route::middleware(['auth:sanctum', 'editor'])->group(function () {
 
     Route::put('/companies/{company}', [CompanyController::class, 'update']);
 
-    Route::patch('/companies/{company}/disable', [CompanyController::class, 'disable']);
+    Route::patch(
+        '/companies/{company}/disable',
+        [CompanyController::class, 'disable']
+    );
 
+
+    /*
+    |--------------------------------------------------------------------------
+    | Invitations
+    |--------------------------------------------------------------------------
+    */
+
+    Route::post(
+        '/invitations',
+        [InvitationController::class, 'store']
+    );
 });
+
+
+/*
+|--------------------------------------------------------------------------
+| Public Invitation Acceptance
+|--------------------------------------------------------------------------
+*/
+
+Route::post(
+    '/invitations/accept',
+    [InvitationController::class, 'accept']
+);
