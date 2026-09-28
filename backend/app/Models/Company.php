@@ -13,6 +13,14 @@ class Company extends Model
         'phone',
         'address',
         'status',
+        'subscription_status',
+        'subscription_started_at',
+        'subscription_ends_at',
+    ];
+
+    protected $casts = [
+        'subscription_started_at' => 'datetime',
+        'subscription_ends_at' => 'datetime',
     ];
 
     public function users(): HasMany

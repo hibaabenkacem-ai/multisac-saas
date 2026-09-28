@@ -6,7 +6,9 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\InvitationController;
-
+use App\Http\Controllers\UserController;
+use App\Http\Controllers\AuditLogController;
+use App\Http\Controllers\SubscriptionController;
 
 Route::post('/login', [AuthController::class, 'login']);
 
@@ -17,7 +19,11 @@ Route::post('/login', [AuthController::class, 'login']);
 |--------------------------------------------------------------------------
 */
 
-Route::middleware(['auth:sanctum', 'company.context'])->group(function () {
+Route::middleware([
+    'auth:sanctum',
+    'company.context',
+    'subscription',
+])->group(function () {
 
     Route::get('/me', [AuthController::class, 'me']);
 
@@ -74,3 +80,64 @@ Route::post(
     '/invitations/accept',
     [InvitationController::class, 'accept']
 );
+
+
+/*
+|--------------------------------------------------------------------------
+| User Management
+|--------------------------------------------------------------------------
+*/
+
+Route::middleware([
+    'auth:sanctum',
+    'permission:users.view'
+])->group(function () {
+
+    Route::get(
+        '/users',
+        [UserController::class, 'index']
+    );
+
+    Route::get(
+        '/users/{user}',
+        [UserController::class, 'show']
+    );
+});
+
+
+Route::middleware([
+    'auth:sanctum',
+    'permission:users.update'
+])->group(function () {
+
+    Route::put(
+        '/users/{user}',
+        [UserController::class, 'update']
+    );
+});
+
+
+Route::middleware([
+    'auth:sanctum',
+    'permission:users.disable'
+])->group(function () {
+
+    Route::patch(
+        '/users/{user}/disable',
+        [UserController::class, 'disable']
+    );
+});
+Route::middleware(['auth:sanctum'])->group(function () {
+    Route::get('/audit-logs', [AuditLogController::class, 'index']);
+    Route::get('/audit-logs/{auditLog}', [AuditLogController::class, 'show']);
+});
+
+
+Route::middleware(['auth:sanctum', 'editor'])->group(function () {
+
+    Route::patch(
+        '/companies/{company}/subscription',
+        [SubscriptionController::class, 'update']
+    );
+
+});

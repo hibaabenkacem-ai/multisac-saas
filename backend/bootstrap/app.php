@@ -12,10 +12,12 @@ return Application::configure(basePath: dirname(__DIR__))
         commands: __DIR__.'/../routes/console.php',
         health: '/up',
     )
-   ->withMiddleware(function (Middleware $middleware): void {
+ ->withMiddleware(function (Middleware $middleware): void {
     $middleware->alias([
         'company.context' => \App\Http\Middleware\SetCompanyContext::class,
         'editor' => \App\Http\Middleware\IsEditor::class,
+        'permission' => \App\Http\Middleware\HasPermission::class,
+        'subscription' => \App\Http\Middleware\CheckCompanySubscription::class,
     ]);
 })
     ->withExceptions(function (Exceptions $exceptions): void {

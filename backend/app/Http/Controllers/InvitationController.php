@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Invitation;
 use App\Models\User;
+use App\Services\AuditLogService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
@@ -13,16 +14,30 @@ class InvitationController extends Controller
 {
     /*
     |--------------------------------------------------------------------------
-    | Create Invitation
+    | Create invitation
     |--------------------------------------------------------------------------
     */
 
-    public function store(Request $request)
-    {
+    public function store(
+        Request $request,
+        AuditLogService $auditLogService
+    ) {
         $validated = $request->validate([
-            'company_id' => ['required', 'exists:companies,id'],
-            'role_id' => ['required', 'exists:roles,id'],
-            'email' => ['required', 'email', 'max:255'],
+            'company_id' => [
+                'required',
+                'exists:companies,id',
+            ],
+
+            'role_id' => [
+                'required',
+                'exists:roles,id',
+            ],
+
+            'email' => [
+                'required',
+                'email',
+                'max:255',
+            ],
         ]);
 
         /*
@@ -31,15 +46,21 @@ class InvitationController extends Controller
         |--------------------------------------------------------------------------
         */
 
-        if (User::where('email', $validated['email'])->exists()) {
+        if (
+            User::where(
+                'email',
+                $validated['email']
+            )->exists()
+        ) {
             return response()->json([
-                'message' => 'This email already belongs to an existing user.',
+                'message' =>
+                    'This email already belongs to an existing user.',
             ], 422);
         }
 
         /*
         |--------------------------------------------------------------------------
-        | Generate secure token
+        | Generate token
         |--------------------------------------------------------------------------
         */
 
@@ -55,28 +76,54 @@ class InvitationController extends Controller
             'company_id' => $validated['company_id'],
             'role_id' => $validated['role_id'],
             'email' => $validated['email'],
+
+            /*
+            | Only the hash is stored in the database.
+            */
             'token_hash' => Hash::make($plainToken),
+
+            /*
+            | Invitation valid for 72 hours.
+            */
             'expires_at' => now()->addHours(72),
         ]);
 
         /*
         |--------------------------------------------------------------------------
-        | Response
+        | Audit
+        |--------------------------------------------------------------------------
+        */
+
+        $auditLogService->log(
+            $request,
+            'invitation.created',
+            'Invitation',
+            $invitation->id
+        );
+
+        /*
+        |--------------------------------------------------------------------------
+        | Development response
         |--------------------------------------------------------------------------
         |
-        | During development we return the token so we can test
-        | the invitation flow with Postman.
+        | We return the token for Postman testing.
+        | In production this token should be sent by email/link.
         |
         */
 
         return response()->json([
             'message' => 'Invitation created successfully.',
+
             'invitation' => [
                 'id' => $invitation->id,
                 'company_id' => $invitation->company_id,
                 'role_id' => $invitation->role_id,
                 'email' => $invitation->email,
                 'expires_at' => $invitation->expires_at,
+
+                /*
+                | Plain token only in development response.
+                */
                 'token' => $plainToken,
             ],
         ], 201);
@@ -85,21 +132,37 @@ class InvitationController extends Controller
 
     /*
     |--------------------------------------------------------------------------
-    | Accept Invitation
+    | Accept invitation
     |--------------------------------------------------------------------------
     */
 
-    public function accept(Request $request)
-    {
+    public function accept(
+        Request $request,
+        AuditLogService $auditLogService
+    ) {
         $validated = $request->validate([
-            'token' => ['required', 'string'],
-            'name' => ['required', 'string', 'max:255'],
-            'password' => ['required', 'string', 'min:8', 'confirmed'],
+            'token' => [
+                'required',
+                'string',
+            ],
+
+            'name' => [
+                'required',
+                'string',
+                'max:255',
+            ],
+
+            'password' => [
+                'required',
+                'string',
+                'min:8',
+                'confirmed',
+            ],
         ]);
 
         /*
         |--------------------------------------------------------------------------
-        | Find valid invitation
+        | Find valid invitations
         |--------------------------------------------------------------------------
         */
 
@@ -107,12 +170,27 @@ class InvitationController extends Controller
             ->where('expires_at', '>', now())
             ->get();
 
-        $invitation = $invitations->first(function ($invitation) use ($validated) {
-            return Hash::check(
-                $validated['token'],
-                $invitation->token_hash
-            );
-        });
+        /*
+        |--------------------------------------------------------------------------
+        | Find matching token
+        |--------------------------------------------------------------------------
+        */
+
+        $invitation = $invitations->first(
+            function ($invitation) use ($validated) {
+
+                return Hash::check(
+                    $validated['token'],
+                    $invitation->token_hash
+                );
+            }
+        );
+
+        /*
+        |--------------------------------------------------------------------------
+        | Invalid / expired invitation
+        |--------------------------------------------------------------------------
+        */
 
         if (!$invitation) {
             throw ValidationException::withMessages([
@@ -126,9 +204,15 @@ class InvitationController extends Controller
         |--------------------------------------------------------------------------
         */
 
-        if (User::where('email', $invitation->email)->exists()) {
+        if (
+            User::where(
+                'email',
+                $invitation->email
+            )->exists()
+        ) {
             return response()->json([
-                'message' => 'A user with this email already exists.',
+                'message' =>
+                    'A user with this email already exists.',
             ], 422);
         }
 
@@ -142,16 +226,21 @@ class InvitationController extends Controller
             'company_id' => $invitation->company_id,
             'name' => $validated['name'],
             'email' => $invitation->email,
-            'password' => Hash::make($validated['password']),
+            'password' => Hash::make(
+                $validated['password']
+            ),
+            'status' => 'active',
         ]);
 
         /*
         |--------------------------------------------------------------------------
-        | Assign role
+        | Assign invitation role
         |--------------------------------------------------------------------------
         */
 
-        $user->roles()->attach($invitation->role_id);
+        $user->roles()->attach(
+            $invitation->role_id
+        );
 
         /*
         |--------------------------------------------------------------------------
@@ -165,17 +254,33 @@ class InvitationController extends Controller
 
         /*
         |--------------------------------------------------------------------------
+        | Audit
+        |--------------------------------------------------------------------------
+        */
+
+        $auditLogService->log(
+            $request,
+            'invitation.accepted',
+            'Invitation',
+            $invitation->id
+        );
+
+        /*
+        |--------------------------------------------------------------------------
         | Response
         |--------------------------------------------------------------------------
         */
 
         return response()->json([
-            'message' => 'Invitation accepted successfully.',
+            'message' =>
+                'Invitation accepted successfully.',
+
             'user' => [
                 'id' => $user->id,
                 'name' => $user->name,
                 'email' => $user->email,
                 'company_id' => $user->company_id,
+                'status' => $user->status,
             ],
         ], 201);
     }
