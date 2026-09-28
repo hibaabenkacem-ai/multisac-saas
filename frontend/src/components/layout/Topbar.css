@@ -1,0 +1,89 @@
+.topbar {
+    height: 82px;
+
+    background: white;
+
+    border-bottom:
+        1px solid #e5e7eb;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: space-between;
+
+    padding: 0 32px;
+}
+
+.topbar h2 {
+    margin: 0;
+
+    font-size: 21px;
+
+    color: #111827;
+}
+
+.topbar p {
+    margin: 5px 0 0;
+
+    color: #6b7280;
+
+    font-size: 13px;
+}
+
+.topbar-right {
+    display: flex;
+
+    align-items: center;
+
+    gap: 18px;
+}
+
+.company-badge {
+    display: flex;
+
+    align-items: center;
+
+    gap: 8px;
+
+    padding: 8px 12px;
+
+    background: #f3f4f6;
+
+    border-radius: 8px;
+
+    font-size: 13px;
+
+    color: #374151;
+}
+
+.company-dot {
+    width: 7px;
+
+    height: 7px;
+
+    border-radius: 50%;
+
+    background: #16a34a;
+}
+
+.logout-button {
+    border:
+        1px solid #e5e7eb;
+
+    background: white;
+
+    color: #374151;
+
+    padding: 8px 14px;
+
+    border-radius: 8px;
+
+    cursor: pointer;
+
+    font-size: 13px;
+}
+
+.logout-button:hover {
+    background: #f9fafb;
+}

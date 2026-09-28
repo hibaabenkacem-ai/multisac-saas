@@ -7,23 +7,25 @@ import {
 
 import { AuthProvider } from "./context/AuthContext";
 
-import Login from "./pages/Login";
-import Dashboard from "./pages/Dashboard";
 import ProtectedRoute from "./components/ProtectedRoute";
+
+import Login from "./pages/auth/Login";
+import Dashboard from "./pages/dashboard/Dashboard";
 
 function App() {
     return (
         <BrowserRouter>
-
             <AuthProvider>
 
                 <Routes>
 
+                    {/* PUBLIC PAGE */}
                     <Route
                         path="/login"
                         element={<Login />}
                     />
 
+                    {/* PROTECTED PAGE */}
                     <Route
                         path="/dashboard"
                         element={
@@ -33,11 +35,23 @@ function App() {
                         }
                     />
 
+                    {/* HOME */}
                     <Route
                         path="/"
                         element={
                             <Navigate
-                                to="/dashboard"
+                                to="/login"
+                                replace
+                            />
+                        }
+                    />
+
+                    {/* UNKNOWN ROUTES */}
+                    <Route
+                        path="*"
+                        element={
+                            <Navigate
+                                to="/login"
                                 replace
                             />
                         }
@@ -46,7 +60,6 @@ function App() {
                 </Routes>
 
             </AuthProvider>
-
         </BrowserRouter>
     );
 }

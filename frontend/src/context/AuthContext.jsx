@@ -1,57 +1,131 @@
-import { createContext, useContext, useEffect, useState } from "react";
+import {
+    createContext,
+    useContext,
+    useEffect,
+    useState,
+} from "react";
+
 import api from "../services/api";
 
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
+
     const [user, setUser] = useState(null);
+
     const [loading, setLoading] = useState(true);
 
-    useEffect(() => {
-        const token = localStorage.getItem("token");
 
+    useEffect(() => {
+
+        const token =
+            localStorage.getItem("token");
+
+
+        // ما كاينش token
         if (!token) {
+
             setLoading(false);
+
             return;
         }
 
+
+        // كاين token → نتأكد واش مازال صالح
         api.get("/me")
             .then((response) => {
-                setUser(response.data.user);
+
+                setUser(
+                    response.data.user
+                );
+
             })
-            .catch(() => {
-                localStorage.removeItem("token");
+            .catch((error) => {
+
+                console.error(
+                    "Authentication check failed:",
+                    error
+                );
+
+                localStorage.removeItem(
+                    "token"
+                );
+
                 setUser(null);
+
             })
             .finally(() => {
+
                 setLoading(false);
+
             });
+
     }, []);
 
-    const login = async (email, password) => {
-        const response = await api.post("/login", {
-            email,
-            password,
-        });
 
-        const { token, user } = response.data;
+    const login = async (
+        email,
+        password
+    ) => {
 
-        localStorage.setItem("token", token);
+        const response =
+            await api.post(
+                "/login",
+                {
+                    email,
+                    password,
+                }
+            );
+
+
+        const token =
+            response.data.token;
+
+        const user =
+            response.data.user;
+
+
+        // نحطو token
+        localStorage.setItem(
+            "token",
+            token
+        );
+
+
+        // نحطو user مباشرة
         setUser(user);
+
 
         return response.data;
     };
 
-    const logout = async () => {
-        try {
-            await api.post("/logout");
-        } catch (error) {
-            // Token may already be invalid.
-        }
 
-        localStorage.removeItem("token");
-        setUser(null);
+    const logout = async () => {
+
+        try {
+
+            await api.post(
+                "/logout"
+            );
+
+        } catch (error) {
+
+            console.error(
+                "Logout request failed:",
+                error
+            );
+
+        } finally {
+
+            localStorage.removeItem(
+                "token"
+            );
+
+            setUser(null);
+
+        }
     };
+
 
     return (
         <AuthContext.Provider
@@ -60,7 +134,8 @@ export function AuthProvider({ children }) {
                 loading,
                 login,
                 logout,
-                isAuthenticated: !!user,
+                isAuthenticated:
+                    !!user,
             }}
         >
             {children}
@@ -68,6 +143,9 @@ export function AuthProvider({ children }) {
     );
 }
 
+
 export function useAuth() {
-    return useContext(AuthContext);
+    return useContext(
+        AuthContext
+    );
 }

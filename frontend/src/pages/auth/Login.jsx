@@ -1,17 +1,25 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
+
+import { useAuth } from "../../context/AuthContext";
+
 import "./Login.css";
 
 function Login() {
     const navigate = useNavigate();
+
     const { login } = useAuth();
 
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
-    const [showPassword, setShowPassword] = useState(false);
+
+    const [showPassword, setShowPassword] =
+        useState(false);
+
     const [error, setError] = useState("");
-    const [loading, setLoading] = useState(false);
+
+    const [loading, setLoading] =
+        useState(false);
 
     const handleSubmit = async (event) => {
         event.preventDefault();
@@ -20,14 +28,19 @@ function Login() {
         setLoading(true);
 
         try {
-            await login(email, password);
+            await login(
+                email,
+                password
+            );
 
             navigate("/dashboard");
+
         } catch (error) {
             setError(
                 error.response?.data?.message ||
                 "Unable to sign in. Please check your credentials."
             );
+
         } finally {
             setLoading(false);
         }
@@ -39,6 +52,7 @@ function Login() {
             <section className="login-container">
 
                 {/* LEFT SIDE */}
+
                 <div className="login-brand">
 
                     <div className="brand-logo">
@@ -46,10 +60,12 @@ function Login() {
                     </div>
 
                     <div className="brand-name">
-                        SaaS<span>Platform</span>
+                        SaaS
+                        <span>Platform</span>
                     </div>
 
                     <div className="brand-content">
+
                         <h2>
                             One workspace.
                             <br />
@@ -57,9 +73,10 @@ function Login() {
                         </h2>
 
                         <p>
-                            Manage your business from one secure
-                            and centralized workspace.
+                            Manage your business from one
+                            secure and centralized workspace.
                         </p>
+
                     </div>
 
                     <div className="brand-footer">
@@ -68,20 +85,26 @@ function Login() {
 
                 </div>
 
+
                 {/* RIGHT SIDE */}
+
                 <div className="login-form-section">
 
                     <div className="login-form-container">
 
                         <div className="mobile-brand">
+
                             <div className="brand-logo">
                                 S
                             </div>
 
                             <div className="brand-name">
-                                SaaS<span>Platform</span>
+                                SaaS
+                                <span>Platform</span>
                             </div>
+
                         </div>
+
 
                         <div className="login-heading">
 
@@ -94,13 +117,16 @@ function Login() {
                             </h1>
 
                             <p className="subtitle">
-                                Enter your credentials to access
-                                your workspace.
+                                Enter your credentials to
+                                access your workspace.
                             </p>
 
                         </div>
 
+
                         <form onSubmit={handleSubmit}>
+
+                            {/* EMAIL */}
 
                             <div className="input-group">
 
@@ -113,7 +139,9 @@ function Login() {
                                     type="email"
                                     value={email}
                                     onChange={(event) =>
-                                        setEmail(event.target.value)
+                                        setEmail(
+                                            event.target.value
+                                        )
                                     }
                                     placeholder="name@company.com"
                                     autoComplete="email"
@@ -121,6 +149,9 @@ function Login() {
                                 />
 
                             </div>
+
+
+                            {/* PASSWORD */}
 
                             <div className="input-group">
 
@@ -144,6 +175,7 @@ function Login() {
 
                                 </div>
 
+
                                 <div className="password-input">
 
                                     <input
@@ -155,7 +187,9 @@ function Login() {
                                         }
                                         value={password}
                                         onChange={(event) =>
-                                            setPassword(event.target.value)
+                                            setPassword(
+                                                event.target.value
+                                            )
                                         }
                                         placeholder="Enter your password"
                                         autoComplete="current-password"
@@ -176,42 +210,61 @@ function Login() {
                                                 : "Show password"
                                         }
                                     >
-                                        {showPassword ? "◉" : "◌"}
+                                        {showPassword
+                                            ? "◉"
+                                            : "◌"}
                                     </button>
 
                                 </div>
 
                             </div>
 
+
+                            {/* ERROR */}
+
                             {error && (
                                 <div className="login-error">
-                                    <span>!</span>
 
-                                    <p>{error}</p>
+                                    <span>
+                                        !
+                                    </span>
+
+                                    <p>
+                                        {error}
+                                    </p>
+
                                 </div>
                             )}
+
+
+                            {/* BUTTON */}
 
                             <button
                                 type="submit"
                                 className="login-button"
                                 disabled={loading}
                             >
+
                                 {loading ? (
                                     <>
                                         <span className="spinner"></span>
+
                                         Signing in...
                                     </>
                                 ) : (
                                     <>
                                         Sign in
+
                                         <span className="arrow">
                                             →
                                         </span>
                                     </>
                                 )}
+
                             </button>
 
                         </form>
+
 
                         <p className="security-note">
                             Your connection is secure and protected.
